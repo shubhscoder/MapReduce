@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package masterworker;
+
+service MapReduce {
+    // RPC to handle map tasks.
+    rpc doMap (MapTaskArg) returns (MapTaskResult) {}
+
+    // RPC to handle reduce tasks.
+    rpc doReduce (ReduceTaskArg) returns (ReduceTaskResult) {}
+}
+
+enum Status {
+    // Could not read file.
+    kFileNotFound = 0;
+
+    // Could not write to file.
+    kNoWriteToFile = 1;
+
+    // Invalid State.
+    kInvalidStatus = 2;
+}
+
+message Error {
+    // Status code describing the error.
+    Status status = 1;
+
+    // Error message in case of an error.
+    string error_msg = 2;
+}
+
+message ShardInfo {
+    // Filename from where the data will be read.
+    string filename = 1;
+
+    // Starting offset to read from.
+    int64 start_offset = 2;
+
+    // Number of bytes to be read.
+    int64 length = 3;
+}
+
+message MapTaskArg {
+    // Unique identifier for the task.
+    int64 task_id = 1;
+
+    // Represents the shard info where worker will perform the map tasks.
+    repeated ShardInfo shard_info = 2;
+
+    // Path where Intermediate files are to be written.
+    string dir_path = 3;
+
+    // Number of reducers.
+    int64 n_reducers = 4;
+
+    // Id of the user.
+    string user_id = 5;
+}
+
+message MapTaskResult {
+    // Error, if any.
+    Error error = 1;
+
+    // Intermediate files where the worker has stored results for the map tasks.
+    repeated string files = 2;
+}
+
+message ReduceTaskArg {
+    // Unique identifier for the task.
+    int64 task_id = 1;
+
+    // Intermediate file where reduce operation needs to be performed.
+    repeated string files = 2;
+
+    // Id of the user.
+    string user_id = 3;
+
+    // Path of output dir.
+    string output_dir = 4;
+}
+
+message ReduceTaskResult {
+    // Error if any.
+    Error error = 1;
+}
